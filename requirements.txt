@@ -1,2 +1,1 @@
-torch == 1.13.1
-dgl == 1.0
+# Requirements with version
