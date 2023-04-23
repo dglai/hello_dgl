@@ -25,7 +25,7 @@ jobs:
           python-version: 3.8
 
       - name: Install Python dependencies
-        run: pip install black flake8 usort ufmt
+        run: pip install black flake8
 
       - name: Install ClangFormat
         run: sudo apt-get install -y clang-format
@@ -35,8 +35,6 @@ jobs:
         with:
           black: true
           flake8: true
-          usort: true
-          ufmt: true
           clang_format: true
 
 concurrency:
