@@ -1,50 +1,35 @@
 name: Lint
 
 on:
+  # Trigger the workflow on push or pull request,
+  # but only for the main branch on push.
   push:
     branches:
       - main
   pull_request:
 
 jobs:
-  lintrunner:
+  run-linters:
+    name: Run linters
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repo
+      - name: Check out Git repository
         uses: actions/checkout@v3
 
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.8'
+          python-version: 3.8
 
-      - name: Install requirements
-        run: |
-          python -m pip install --upgrade pip
-          pip install lintrunner --user
+      - name: Install Python dependencies
+        run: pip install black flake8
 
-      - name: Initialize lint dependencies
-        run: lintrunner init
-
-      - name: Run lintrunner on all changed files
-        run: |
-          set +e
-          if ! lintrunner --force-color -m main --tee-json=lint.json; then
-              echo ""
-              echo -e "\e[1m\e[36mYou can reproduce these results locally by using \`lintrunner\`.\e[0m"
-              echo -e "\e[1m\e[36mSee https://github.com/pytorch/pytorch/wiki/lintrunner for setup instructions.\e[0m"
-              exit 1
-          fi
-
-      - name: Store annotations
-        if: always() && github.event_name == 'pull_request'
-        # Don't show this as an error; the above step will have already failed.
-        continue-on-error: true
-        run: |
-          # Use jq to massage the JSON lint output into GitHub Actions workflow commands.
-          jq --raw-output \
-            '"::\(if .severity == "advice" or .severity == "disabled" then "warning" else .severity end) file=\(.path),line=\(.line),col=\(.char),title=\(.code) \(.name)::" + (.description | gsub("\\n"; "%0A"))' \
-            lint.json
+      - name: Run linters
+        uses: wearerequired/lint-action@v2
+        with:
+          black: true
+          flake8: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}-${{ github.event_name == 'workflow_dispatch' }}
