@@ -6,6 +6,19 @@ on:
       - main
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number || github.event.pull_request.head.sha }}
+  cancel-in-progress: true
+  
+permissions:
+  id-token: write
+  pull-requests: write
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 # All test scripts split in individual .sh files and moved to .github/workflow scripts
 env:
   COMMAND-PYTEST: bash ./pytest_check.sh
@@ -17,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v1
+      uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: arn:aws:iam::801250864718:role/github-oidc-role
         aws-region: us-west-2
