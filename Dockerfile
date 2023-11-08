@@ -23,7 +23,7 @@ RUN aws --version
 RUN cd /tmp && wget https://bootstrap.pypa.io/get-pip.py && python3 get-pip.py && cd -
 # Below packages are required by DistDGL as conda environment is not supported.
 # We should remove them once DistDGL supports conda.
-RUN pip3 install nose numpy cython scipy networkx matplotlib nltk
+RUN pip3 install pytest nose numpy cython scipy networkx matplotlib nltk
 RUN pip3 install requests[security] tqdm psutil pyyaml pydantic
 RUN pip3 install pandas rdflib ogb filelock pyarrow
 RUN pip3 install torch==1.13.1 torchvision torchaudio \
