@@ -39,4 +39,4 @@ RUN LANG=C.UTF-8 LC_ALL=C.UTF-8 PATH=/opt/conda/bin:$PATH wget --quiet \
     echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc
 
 # Fetch latest hello_dgl code.
-RUN git clone https://github.com/dglai/hello_dgl.git --branch main /hello_dgl
+RUN git clone https://github.com/dglai/hello_dgl.git --branch main  /hello_dgl
