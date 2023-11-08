@@ -47,6 +47,7 @@ jobs:
         python3 -m pip install pytest
         pip3 install boto3
     - name: Submit Job
+      if: ${{ github.event_name == 'push' }}
       shell: bash
       run: |
         echo "Start submitting job - Check"  
