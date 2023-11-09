@@ -47,12 +47,25 @@ jobs:
         python3 -m pip install pytest
         pip3 install boto3
     - name: Submit Job
-      if: ${{ github.event_name == 'push' }}
+      id: submit-job
       shell: bash
       run: |
         echo "Start submitting job - Check"  
         python3 ./submitJob.py --job-type CI-CPU --name hello_DGL-pytest-check-'${{ github.ref }}' \
                                --command "${{ env.COMMAND-PYTEST }}" \
                                --remote https://github.com/'${{ github.repository }}' \
-                               --source-ref '${{ github.ref }}' \
-                               --wait
+                               --source-ref '${{ github.ref }}'
+    - name: Check batch job status
+      id: check-job-status
+      shell: bash
+      run: |
+        echo "Start checking job status - Check"
+        python3 ./checkJobStatus.py --job-id ${{ steps.submit-job.outputs }} \
+                                    --job-name hello_DGL-pytest-check-'${{ github.ref }}'
+      schedule: # execute every 2 minutes
+        - cron: '*/2 * * * *'
+    - name: Exit if job status finished
+      shell: bash
+      run: |
+        echo "Start exiting job - Check"
+        python3 ./exitJob.py --job-id ${{ steps.submit-job.outputs }}
