@@ -1,0 +1,71 @@
+name: continuous_integration
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number || github.event.pull_request.head.sha }}
+  cancel-in-progress: true
+  
+permissions:
+  id-token: write
+  pull-requests: write
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+# All test scripts split in individual .sh files and moved to .github/workflow scripts
+env:
+  COMMAND-PYTEST: bash ./pytest_check.sh
+
+
+jobs:
+  pytest_check:
+    if: ${{ github.event.label.name != 'draft' }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::801250864718:role/github-oidc-role
+        aws-region: us-west-2
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    - name: Set up Python 3.x
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    - name: Install dependencies
+      shell: bash
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install pytest
+        pip3 install boto3
+    - name: Submit Job
+      id: submit-job
+      shell: bash
+      run: |
+        echo "Start submitting job - Check"  
+        python3 ./submitJob.py --job-type CI-CPU --name hello_DGL-pytest-check-'${{ github.ref }}' \
+                               --command "${{ env.COMMAND-PYTEST }}" \
+                               --remote https://github.com/'${{ github.repository }}' \
+                               --source-ref '${{ github.ref }}'
+    - name: Check batch job status periodically
+      id: check-job-status
+      shell: bash
+      run: |
+        echo "Start checking job status - Check"
+        python3 ./checkJobStatus.py --job-id ${{ steps.submit-job.outputs }} \
+                                    --job-name hello_DGL-pytest-check-'${{ github.ref }}'
+      schedule: # execute every 2 minutes
+        - cron: '*/2 * * * *'
+    - name: Exit if job status finished
+      shell: bash
+      run: |
+        echo "Start exiting job - Check"
+        python3 ./exitJob.py --job-id ${{ steps.submit-job.outputs }}
