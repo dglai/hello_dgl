@@ -55,7 +55,7 @@ jobs:
                                --command "${{ env.COMMAND-PYTEST }}" \
                                --remote https://github.com/'${{ github.repository }}' \
                                --source-ref '${{ github.ref }}'
-    - name: Check batch job status
+    - name: Check batch job status periodically
       id: check-job-status
       shell: bash
       run: |
